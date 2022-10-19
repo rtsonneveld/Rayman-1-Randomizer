@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Text;
 
-namespace Ray1ModRandomizerUI {
+namespace Rayman1Randomizer {
     static class FileUtil {
 
         /// <summary>

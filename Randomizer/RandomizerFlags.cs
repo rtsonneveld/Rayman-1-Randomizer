@@ -1,8 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
 
-namespace Ray1ModRandomizerUI {
+namespace Rayman1Randomizer {
     [Flags]
     public enum RandomizerFlags {
         Pos = 1 << 1,

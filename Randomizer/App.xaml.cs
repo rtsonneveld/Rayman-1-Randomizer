@@ -6,7 +6,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
 
-namespace Ray1ModRandomizerUI {
+namespace Rayman1Randomizer {
     /// <summary>
     /// Interaction logic for App.xaml
     /// </summary>

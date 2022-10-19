@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 16
 VisualStudioVersion = 16.0.30621.155
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Rayman_1_Randomizer", "Rayman_1_Randomizer.csproj", "{BCD5F164-39F5-454D-9496-E0BE55EA023F}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Rayman1Randomizer", "Rayman1Randomizer.csproj", "{BCD5F164-39F5-454D-9496-E0BE55EA023F}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BinarySerializer", "..\sub-modules\BinarySerializer\src\BinarySerializer.csproj", "{E8C26B54-C005-4383-8182-BEF54DF57DE1}"
 EndProject

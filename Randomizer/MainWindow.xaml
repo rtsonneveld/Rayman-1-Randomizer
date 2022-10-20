@@ -4,28 +4,109 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:Rayman1Randomizer"
+        xmlns:converters="clr-namespace:Rayman1Randomizer.Converters"
         mc:Ignorable="d"
-        Title="Rayman PS1 Randomizer" Height="260" Width="500">
-    <Grid x:Name="grid">
-        <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="2*"/>
-            <ColumnDefinition Width="3*"/>
-        </Grid.ColumnDefinitions>
-        <Grid.RowDefinitions>
-            <RowDefinition/>
-            <RowDefinition Height="31.007"/>
-        </Grid.RowDefinitions>
-        <ProgressBar x:Name="progressBar" Margin="10,0,10,0" Height="16" VerticalAlignment="Center" Grid.Row="1" Grid.ColumnSpan="2" Maximum="1" LargeChange="0.1" SmallChange="0.01"/>
-        <ItemsControl Margin="10,10,10,10" x:Name="optionsList">
+        Title="Rayman PS1 Randomizer" 
+        Width="500" Height="300" 
+        MinWidth="500" MinHeight="300">
+    <Window.Resources>
+        <converters:InvertedBooleanConverter x:Key="InvertedBooleanConverter" />
+        <converters:IntToStringConverter x:Key="CagesIntToStringConverter" DefaultValue="102" />
+    </Window.Resources>
 
-            <CheckBox x:Name="checkBoxAll" Content="Check All" Checked="checkBoxAll_Checked" Unchecked="checkBoxAll_Unchecked"/>
-        </ItemsControl>
-        <TextBox x:Name="seedInput" Grid.Column="1" Margin="11,32,11,0" TextWrapping="Wrap" VerticalAlignment="Top" Height="18"/>
-        <Label x:Name="seedLabel" Content="Seed (leave empty for random seed)" Grid.Column="1" HorizontalAlignment="Left" Margin="10,6,0,0" VerticalAlignment="Top" Height="26" Width="202"/>
-        <Button x:Name="randomizeButton" Content="Randomize" Grid.Column="1" HorizontalAlignment="Left" Margin="10,0,0,9" Height="20" VerticalAlignment="Bottom" Width="101" Click="randomizeButton_Click"/>
-        <CheckBox x:Name="restoreOriginalFilesCheckbox" Content="Restore original files after randomization" Grid.Column="1" Margin="10,0,0,34" HorizontalAlignment="Left" Width="241" Height="15" VerticalAlignment="Bottom" IsChecked="True"/>
-        <TextBox x:Name="cageInput" Grid.Column="1" Margin="11,81,11,0" TextWrapping="Wrap" VerticalAlignment="Top" Height="18" Text="102"/>
-        <Label x:Name="cageLabel" Content="Required Cage Amount" Grid.Column="1" HorizontalAlignment="Left" Margin="10,55,0,0" VerticalAlignment="Top" Height="26" Width="202"/>
+    <Window.DataContext>
+        <local:RandomizerViewModel />
+    </Window.DataContext>
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <Grid Grid.Row="0"
+              IsEnabled="{Binding Path=IsRandomizing, Converter={StaticResource InvertedBooleanConverter}}">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="2*" />
+                <ColumnDefinition Width="3*" />
+            </Grid.ColumnDefinitions>
+
+            <!-- Toggles -->
+
+            <ItemsControl Grid.Column="0" 
+                          Margin="10" 
+                          ItemsSource="{Binding Path=FlagViewModels, Mode=OneTime}">
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                        <CheckBox Content="{Binding Path=DisplayName, Mode=OneTime}"
+                                  IsChecked="{Binding Path=IsEnabled}" 
+                                  Margin="0 0 0 5" />
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+
+            <Grid Grid.Column="1">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="*" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
+
+                <!-- Top panel -->
+
+                <StackPanel Grid.Row="0" Margin="10 10 10 0">
+
+                    <!-- Seed -->
+
+                    <TextBlock Text="Seed (leave empty for random seed)" 
+                               Margin="0 0 0 5" />
+
+                    <TextBox Text="{Binding Path=Seed}"
+                             Margin="0 0 0 10" />
+
+                    <!-- Required cages -->
+
+                    <TextBlock Text="Required Cage Amount"
+                               Margin="0 0 0 5" />
+
+                    <TextBox Text="{Binding Path=RequiredCages, Converter={StaticResource CagesIntToStringConverter}}"
+                             Margin="0 0 0 10" />
+
+                </StackPanel>
+
+                <!-- Bottom panel -->
+
+                <StackPanel Grid.Row="1" Margin="10 10 10 0">
+
+                    <CheckBox Content="Restore original files after randomization" 
+                              IsChecked="{Binding Path=RestoreOriginalFiles}"
+                              Margin="0 0 0 5" />
+
+                    <Button Content="Randomize" 
+                            HorizontalAlignment="Left" 
+                            Padding="12 1" 
+                            Command="{Binding Path=RandomizeCommand, Mode=OneTime}" />
+
+                </StackPanel>
+
+            </Grid>
+
+        </Grid>
+
+        <StackPanel Grid.Row="1"
+                    IsEnabled="{Binding Path=IsRandomizing}"
+                    Margin="10">
+
+            <!-- Progress -->
+
+            <ProgressBar Value="{Binding Path=CurrentProgress}"
+                         Margin="0 0 0 5"
+                         Height="16" 
+                         Maximum="1" />
+
+            <Button Content="Cancel"
+                    Command="{Binding Path=RandomizeCancelCommand, Mode=OneTime}" />
+
+        </StackPanel>
 
     </Grid>
 </Window>

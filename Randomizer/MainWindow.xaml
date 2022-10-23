@@ -71,9 +71,7 @@
                     <TextBox Text="{Binding Path=RequiredCages, Converter={StaticResource CagesIntToStringConverter}}"
                              Margin="0 0 0 10" />
 
-                    <TextBlock
-                               Margin="0 0 0 5" >Game Files Directory
-                    </TextBlock>
+                    <TextBlock Margin="0 0 0 5">Game Files Directory</TextBlock>
 
                     <Grid Margin="0 0 0 10">
                         <Grid.ColumnDefinitions>
@@ -81,13 +79,11 @@
                             <ColumnDefinition Width="*" />
                         </Grid.ColumnDefinitions>
 
-                        <Button Grid.Column="0" Command="{Binding Path=SelectGameDirectory}" >Select Directory</Button>
+                        <Button Grid.Column="0" Command="{Binding Path=SelectGameDirectory, Mode=OneTime}">Select Directory</Button>
                         <TextBox Grid.Column="1" Text="{Binding Path=GamePath}"/>
                     </Grid>
 
-                    <TextBlock
-                        Margin="0 0 0 5" >MkPsxIso.exe Location
-                    </TextBlock>
+                    <TextBlock Margin="0 0 0 5">MkPsxIso.exe Location</TextBlock>
 
                     <Grid Margin="0 0 0 10">
                         <Grid.ColumnDefinitions>
@@ -100,11 +96,10 @@
                     </Grid>
 
                     <TextBlock>
-                    <Hyperlink
-        NavigateUri="https://raym.app/ray1editor/"
-        RequestNavigate="Hyperlink_RequestNavigate">
-                        (Download Rayman 1 PS1 edit kit here)
-                    </Hyperlink>
+                        <Hyperlink NavigateUri="https://raym.app/ray1editor/"
+                                   RequestNavigate="Hyperlink_RequestNavigate">
+                            (Download Rayman 1 PS1 edit kit here)
+                        </Hyperlink>
                     </TextBlock>
 
                 </StackPanel>

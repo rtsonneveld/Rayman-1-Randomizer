@@ -21,13 +21,13 @@ public class Randomizer
         Settings = settings;
     }
 
-   #endregion
+    #endregion
 
-   #region Public Constant Fields
-   public const string ExeFileName = "SLUS-000.05";
-   #endregion
+    #region Public Constant Fields
+    public const string ExeFileName = "SLUS-000.05";
+    #endregion
 
-   #region Private Constant Fields
+    #region Private Constant Fields
 
     private const double MaxGenDoorFromObjectDist = 200;
     private const double MaxObjectFromOriginalSpotDist = 1000;

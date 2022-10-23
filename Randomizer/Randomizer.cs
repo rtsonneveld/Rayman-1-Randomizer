@@ -302,7 +302,7 @@ public class Randomizer
             "-lba", ProcessHelpers.GetStringAsPathArg(lbaLogFile.TempPath), // Specify LBA log path
             "-noisogen", // Don't generate an ISO now
             xmlFilePath // The xml path,
-        }, workingDir: context.BasePath);
+        }, workingDir: context.BasePath, logInfo: Debugger.IsAttached);
 
         // Read the LBA log
         using Stream lbaLogStream = lbaLogFile.OpenRead();
@@ -364,7 +364,7 @@ public class Randomizer
         {
             "-y", // Set to always overwrite
             xmlFilePath, // The xml path,
-        }, workingDir: context.BasePath, logInfo: true);
+        }, workingDir: context.BasePath, logInfo: Debugger.IsAttached);
 
         File.Move(Path.Combine(context.BasePath, "Rayman.bin"), Path.Combine(outputDirectory, "Rayman.bin"));
         File.Move(Path.Combine(context.BasePath, "Rayman.cue"), Path.Combine(outputDirectory, "Rayman.cue"));

@@ -29,9 +29,9 @@ public static class ProcessHelpers
         p.Start();
 
         if (logInfo) {
-           string output = p.StandardOutput.ReadToEnd();
-           Debug.WriteLine($"Process output:");
-           Debug.WriteLine(output);
+            string output = p.StandardOutput.ReadToEnd();
+            Debug.WriteLine($"Process output:");
+            Debug.WriteLine(output);
         }
         
         if (waitForExit)

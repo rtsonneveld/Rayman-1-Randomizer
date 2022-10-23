@@ -383,6 +383,8 @@ public class Randomizer
         PS1_ExecutableConfig exeConfig = PS1_ExecutableConfig.PS1_US;
         const string xmlFileName = "disc.xml";
 
+        Stopwatch sw = Stopwatch.StartNew();
+
         // Create the context
         using Context context = new(Settings.GameDirectory, new SerializerSettings());
 
@@ -415,7 +417,6 @@ public class Randomizer
         // Enumerate every world and every level
         for (int worldIndex = 0; worldIndex < 6; worldIndex++) {
 
-            break; // DEBUG
             settings.World = (World)(worldIndex + 1);
 
             // Get the world file entry
@@ -449,11 +450,11 @@ public class Randomizer
                 FileFactory.Write<PS1_LevFile>(context, lvlPath);
 
                 // Remove level
-                context.RemoveFile(lvlPath);
+                context.RemoveFile(lvlPath, clearCache: true);
             }
 
             // Remove world
-            context.RemoveFile(worldFileEntry.ProcessedFilePath);
+            context.RemoveFile(worldFileEntry.ProcessedFilePath, clearCache: true);
         }
 
         // Close the context so the files can be accessed by other processes
@@ -479,6 +480,9 @@ public class Randomizer
         OpenDirectoryInExplorer(outputDirectory);
 
         progressCallback(1);
+
+        sw.Stop();
+        Debug.WriteLine($"Finished in {sw.ElapsedMilliseconds}ms");
     }
 
     private static void OpenDirectoryInExplorer(string outputDirectory)

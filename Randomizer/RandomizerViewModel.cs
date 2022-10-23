@@ -89,59 +89,75 @@ public partial class RandomizerViewModel : ObservableObject
 
     private void CopyFile(string file, string destFile)
     {
-       if (File.Exists(destFile))
-          File.Delete(destFile);
-       File.Copy(file, destFile);
+        if (File.Exists(destFile))
+            File.Delete(destFile);
+        File.Copy(file, destFile);
     }
 
     private void ShowSelectGameDirectoryDialog()
     {
-       CommonOpenFileDialog dialog = new CommonOpenFileDialog();
-       dialog.IsFolderPicker = true;
-       if (dialog.ShowDialog() == CommonFileDialogResult.Ok) {
-          if (IsValidPath(dialog.FileName)) {
-             GamePath = dialog.FileName;
-          }
-       }
+        CommonOpenFileDialog dialog = new CommonOpenFileDialog();
+        dialog.IsFolderPicker = true;
+        if (dialog.ShowDialog() == CommonFileDialogResult.Ok) {
+            if (IsValidPath(dialog.FileName)) {
+                GamePath = dialog.FileName;
+            }
+        }
     }
 
     private void ShowSelectMkPsxIsoFileDialog()
     {
-       CommonOpenFileDialog dialog = new CommonOpenFileDialog();
-       dialog.Filters.Add(new CommonFileDialogFilter("mkpsxiso.exe", "*.exe"));
+        CommonOpenFileDialog dialog = new CommonOpenFileDialog();
+        dialog.Filters.Add(new CommonFileDialogFilter("mkpsxiso.exe", "*.exe"));
 
-       if (dialog.ShowDialog() == CommonFileDialogResult.Ok) {
-          MkPsxIsoPath = dialog.FileName;
-       }
+        if (dialog.ShowDialog() == CommonFileDialogResult.Ok) {
+            MkPsxIsoPath = dialog.FileName;
+        }
     }
 
-   private static bool IsValidPath(string gamePath)
+    private static bool IsValidPath(string gamePath)
     {
-       var directories = Directory.GetDirectories(gamePath).Select(Path.GetFileName);
-       var files = Directory.GetFiles(gamePath).Select(Path.GetFileName);
+        var directories = Directory.GetDirectories(gamePath).Select(Path.GetFileName);
+        var files = Directory.GetFiles(gamePath).Select(Path.GetFileName);
 
-      if (!directories.Contains("RAY") || !files.Contains("SLUS-000.05")) {
+        if (!directories.Contains("RAY") || !files.Contains("SLUS-000.05")) {
 
-          MessageBox.Show(
-             "Invalid game directory, make sure there's a RAY folder and a game executable file named SLUS-000.05 present.", "Invalid game directory", MessageBoxButton.OK, MessageBoxImage.Error);
+            MessageBox.Show(
+                "Invalid game directory, make sure there's a RAY folder and a game executable file named SLUS-000.05 present.", "Invalid game directory", MessageBoxButton.OK, MessageBoxImage.Error);
 
-          return false;
-       }
+            return false;
+        }
 
-      return true;
+        return true;
+    }
+
+    private void RemoveReadOnlyFromDirectoryRecursive(string directory)
+    {
+        File.SetAttributes(directory, FileAttributes.Normal);
+
+        foreach (string subDirectory in Directory.GetDirectories(directory))
+        {
+            File.SetAttributes(subDirectory, FileAttributes.Normal);
+            RemoveReadOnlyFromDirectoryRecursive(subDirectory);
+        }
+
+        foreach (string file in Directory.GetFiles(directory))
+        {
+            File.SetAttributes(file, FileAttributes.Normal);
+        }
     }
 
     #endregion
 
-   #region Public Methods
+    #region Public Methods
 
-   [RelayCommand(IncludeCancelCommand = true)]
+    [RelayCommand(IncludeCancelCommand = true)]
     public async Task RandomizeAsync(CancellationToken cancellationToken)
     {
-       const string BackupSuffix = ".BAK";
+        const string BackupSuffix = ".BAK";
 
         if (!IsValidPath(GamePath)) {
-           return;
+            return;
         }
 
         RemoveReadOnlyFromDirectoryRecursive(GamePath);
@@ -189,26 +205,12 @@ public partial class RandomizerViewModel : ObservableObject
 
             if (RestoreOriginalFiles || forceRestoreFiles)
             {
-               CopyDirectory(Path.Combine(GamePath, "RAY" + BackupSuffix), Path.Combine(GamePath, "RAY"));
-               CopyFile(Path.Combine(GamePath, Randomizer.ExeFileName + BackupSuffix), Path.Combine(GamePath, Randomizer.ExeFileName));
-               Directory.Delete(Path.Combine(GamePath, "RAY" + BackupSuffix), true);
-               File.Delete(Path.Combine(GamePath, Randomizer.ExeFileName + BackupSuffix));
+                CopyDirectory(Path.Combine(GamePath, "RAY" + BackupSuffix), Path.Combine(GamePath, "RAY"));
+                CopyFile(Path.Combine(GamePath, Randomizer.ExeFileName + BackupSuffix), Path.Combine(GamePath, Randomizer.ExeFileName));
+                Directory.Delete(Path.Combine(GamePath, "RAY" + BackupSuffix), true);
+                File.Delete(Path.Combine(GamePath, Randomizer.ExeFileName + BackupSuffix));
             }
         }
-    }
-
-    private void RemoveReadOnlyFromDirectoryRecursive(string directory) 
-    {
-      File.SetAttributes(directory, FileAttributes.Normal);
-
-      foreach (string subDirectory in Directory.GetDirectories(directory)) {
-          File.SetAttributes(subDirectory, FileAttributes.Normal);
-          RemoveReadOnlyFromDirectoryRecursive(subDirectory);
-      }
-
-      foreach (string file in Directory.GetFiles(directory)) {
-         File.SetAttributes(file, FileAttributes.Normal);
-      }
     }
 
     #endregion

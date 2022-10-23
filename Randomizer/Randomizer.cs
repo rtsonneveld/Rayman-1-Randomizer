@@ -20,9 +20,13 @@ public class Randomizer
         Settings = settings;
     }
 
-    #endregion
+   #endregion
 
-    #region Private Constant Fields
+   #region Public Constant Fields
+   public const string ExeFileName = "SLUS-000.05";
+   #endregion
+
+   #region Private Constant Fields
 
     private const double MaxGenDoorFromObjectDist = 200;
     private const double MaxObjectFromOriginalSpotDist = 1000;
@@ -296,7 +300,7 @@ public class Randomizer
         {
             "-lba", ProcessHelpers.GetStringAsPathArg(lbaLogFile.TempPath), // Specify LBA log path
             "-noisogen", // Don't generate an ISO now
-            xmlFilePath // The xml path
+            xmlFilePath // The xml path,
         }, workingDir: context.BasePath);
 
         // Read the LBA log
@@ -359,7 +363,7 @@ public class Randomizer
         {
             "-y", // Set to always overwrite
             xmlFilePath // The xml path
-        }, workingDir: context.BasePath, logInfo: false);
+        }, workingDir: context.BasePath, logInfo: true);
     }
 
     #endregion
@@ -369,7 +373,6 @@ public class Randomizer
     public void Start(Action<double> progressCallback, CancellationToken cancellationToken)
     {
         // TODO: Change this depending on regional release
-        const string exeFileName = "SLUS-000.05";
         const long exeAddress = 0x80125000 - 0x800;
         long[] cageRequirementAddresses = { 0x8015b4ec, 0x8018df7c };
         Dictionary<PS1_DefinedPointer, long> definedPointers = PS1_DefinedPointers.PS1_US;
@@ -383,7 +386,7 @@ public class Randomizer
         Ray1Settings settings = context.AddSettings(new Ray1Settings(Ray1EngineVersion.PS1));
 
         // Add the exe file
-        context.AddFile(new MemoryMappedFile(context, exeFileName, exeAddress)
+        context.AddFile(new MemoryMappedFile(context, ExeFileName, exeAddress)
         {
             RecreateOnWrite = false
         });
@@ -392,7 +395,7 @@ public class Randomizer
         context.AddPreDefinedPointers(definedPointers);
 
         // Read the exe file
-        PS1_Executable exe = FileFactory.Read<PS1_Executable>(context, exeFileName, onPreSerialize: (_, o) => o.Pre_PS1_Config = exeConfig);
+        PS1_Executable exe = FileFactory.Read<PS1_Executable>(context, ExeFileName, onPreSerialize: (_, o) => o.Pre_PS1_Config = exeConfig);
 
         // Get fix file entry
         PS1_FileTableEntry fixFileEntry = exe.PS1_FileTable[exe.GetFileTypeIndex(exeConfig, PS1_FileType.filefxs)];
@@ -406,8 +409,8 @@ public class Randomizer
         int totalLevelIndex = 0;
 
         // Enumerate every world and every level
-        for (int worldIndex = 0; worldIndex < 6; worldIndex++)
-        {
+        for (int worldIndex = 0; worldIndex < 6; worldIndex++) {
+         
             settings.World = (World)(worldIndex + 1);
 
             // Get the world file entry
@@ -456,11 +459,11 @@ public class Randomizer
         // Edit the required cages count
         var s = context.Serializer;
         foreach (long address in cageRequirementAddresses)
-            s.DoAt(new Pointer(address, context.GetRequiredFile(exeFileName)), 
+            s.DoAt(new Pointer(address, context.GetRequiredFile(ExeFileName)), 
                 () => s.Serialize<byte>((byte)Settings.RequiredCages, name: "RequiredCages"));
 
         // Save the exe
-        FileFactory.Write<PS1_Executable>(context, exeFileName);
+        FileFactory.Write<PS1_Executable>(context, ExeFileName);
 
         CreateISO(context, xmlFileName);
 

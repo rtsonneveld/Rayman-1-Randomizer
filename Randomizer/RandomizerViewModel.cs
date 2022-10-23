@@ -4,8 +4,10 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
+using System.Windows.Input;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using Microsoft.WindowsAPICodePack.Dialogs;
 
 namespace Rayman1Randomizer;
 
@@ -29,6 +31,8 @@ public partial class RandomizerViewModel : ObservableObject
     [ObservableProperty] private bool _restoreOriginalFiles = true;
     [ObservableProperty] private int _requiredCages = 102;
     [ObservableProperty] private string _seed = String.Empty;
+    [ObservableProperty] private string _gamePath = String.Empty;
+    [ObservableProperty] private string _mkPsxIsoPath = String.Empty;
     [ObservableProperty] private double _currentProgress = 0;
 
     #endregion
@@ -36,6 +40,9 @@ public partial class RandomizerViewModel : ObservableObject
     #region Public Properties
 
     public RandomizerFlagViewModel[] FlagViewModels { get; }
+
+    public ICommand SelectGameDirectory => new RelayCommand(ShowSelectGameDirectoryDialog);
+    public ICommand SelectMkPsxIsoExecutable => new RelayCommand(ShowSelectMkPsxIsoFileDialog);
 
     #endregion
 
@@ -53,26 +60,71 @@ public partial class RandomizerViewModel : ObservableObject
         foreach (string file in Directory.GetFiles(root))
         {
             string destFile = Path.Combine(dest, Path.GetFileName(file));
-            if (File.Exists(destFile))
-                File.Delete(destFile);
-            File.Copy(file, destFile);
+            CopyFile(file, destFile);
         }
+    }
+
+    private void CopyFile(string file, string destFile)
+    {
+       if (File.Exists(destFile))
+          File.Delete(destFile);
+       File.Copy(file, destFile);
+    }
+
+    private void ShowSelectGameDirectoryDialog()
+    {
+       CommonOpenFileDialog dialog = new CommonOpenFileDialog();
+       dialog.IsFolderPicker = true;
+       if (dialog.ShowDialog() == CommonFileDialogResult.Ok) {
+          if (IsValidPath(dialog.FileName)) {
+             GamePath = dialog.FileName;
+          }
+       }
+    }
+
+    private void ShowSelectMkPsxIsoFileDialog()
+    {
+       CommonOpenFileDialog dialog = new CommonOpenFileDialog();
+       dialog.Filters.Add(new CommonFileDialogFilter("mkpsxiso.exe", "*.exe"));
+
+       if (dialog.ShowDialog() == CommonFileDialogResult.Ok) {
+          MkPsxIsoPath = dialog.FileName;
+       }
+    }
+
+   private static bool IsValidPath(string gamePath)
+    {
+       var directories = Directory.GetDirectories(gamePath).Select(Path.GetFileName);
+       var files = Directory.GetFiles(gamePath).Select(Path.GetFileName);
+
+      if (!directories.Contains("RAY") || !files.Contains("SLUS-000.05")) {
+
+          MessageBox.Show(
+             "Invalid game directory, make sure there's a RAY folder and a game executable file named SLUS-000.05 present.", "Invalid game directory", MessageBoxButton.OK, MessageBoxImage.Error);
+
+          return false;
+       }
+
+      return true;
     }
 
     #endregion
 
-    #region Public Methods
+   #region Public Methods
 
-    [RelayCommand(IncludeCancelCommand = true)]
+   [RelayCommand(IncludeCancelCommand = true)]
     public async Task RandomizeAsync(CancellationToken cancellationToken)
     {
-        // Get paths
-        string currentDir = Directory.GetCurrentDirectory();
-        string gameDir = Path.Combine(currentDir, "RaymanFiles");
-        string mkpsxisoLocation = Path.Combine(currentDir, "Tools", "mkpsxiso.exe");
+       const string BackupSuffix = ".BAK";
 
-        // TODO: Back up exe file as well?
-        CopyDirectory(Path.Combine(gameDir, "RAY"), Path.Combine(gameDir, "RAY_BAK"));
+        if (!IsValidPath(GamePath)) {
+           return;
+        }
+
+        RemoveReadOnlyFromDirectoryRecursive(GamePath);
+      
+        CopyDirectory(Path.Combine(GamePath, "RAY"), Path.Combine(GamePath, "RAY"+BackupSuffix));
+        CopyFile(Path.Combine(GamePath, Randomizer.ExeFileName), Path.Combine(GamePath, Randomizer.ExeFileName + BackupSuffix));
 
         if (RequiredCages is < 0 or > 102)
             RequiredCages = 102;
@@ -82,7 +134,7 @@ public partial class RandomizerViewModel : ObservableObject
             Where(flagViewModel => flagViewModel.IsEnabled).
             Aggregate(RandomizerFlags.None, (current, flagViewModel) => current | flagViewModel.Flag);
 
-        RandomizerSettings randomizerSettings = new(seed, gameDir, mkpsxisoLocation, RequiredCages, flags);
+        RandomizerSettings randomizerSettings = new(seed, GamePath, MkPsxIsoPath, RequiredCages, flags);
 
         bool forceRestoreFiles = false;
 
@@ -114,10 +166,26 @@ public partial class RandomizerViewModel : ObservableObject
 
             if (RestoreOriginalFiles || forceRestoreFiles)
             {
-                CopyDirectory(Path.Combine(gameDir, "RAY_BAK"), Path.Combine(gameDir, "RAY"));
-                Directory.Delete(Path.Combine(gameDir, "RAY_BAK"), true);
+               CopyDirectory(Path.Combine(GamePath, "RAY" + BackupSuffix), Path.Combine(GamePath, "RAY"));
+               CopyFile(Path.Combine(GamePath, Randomizer.ExeFileName + BackupSuffix), Path.Combine(GamePath, Randomizer.ExeFileName));
+               Directory.Delete(Path.Combine(GamePath, "RAY" + BackupSuffix), true);
+               File.Delete(Path.Combine(GamePath, Randomizer.ExeFileName + BackupSuffix));
             }
         }
+    }
+
+    private void RemoveReadOnlyFromDirectoryRecursive(string directory) 
+    {
+      File.SetAttributes(directory, FileAttributes.Normal);
+
+      foreach (string subDirectory in Directory.GetDirectories(directory)) {
+          File.SetAttributes(subDirectory, FileAttributes.Normal);
+          RemoveReadOnlyFromDirectoryRecursive(subDirectory);
+      }
+
+      foreach (string file in Directory.GetFiles(directory)) {
+         File.SetAttributes(file, FileAttributes.Normal);
+      }
     }
 
     #endregion

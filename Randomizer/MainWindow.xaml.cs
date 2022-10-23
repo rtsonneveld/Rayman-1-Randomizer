@@ -1,4 +1,7 @@
-﻿using System.Windows;
+﻿using Microsoft.WindowsAPICodePack.Dialogs;
+using System.Diagnostics;
+using System.Windows;
+using System.Windows.Navigation;
 
 namespace Rayman1Randomizer;
 
@@ -11,5 +14,13 @@ public partial class MainWindow : Window
     {
         InitializeComponent();
         Title += $" {App.Version}";
+    }
+    private void Hyperlink_RequestNavigate(object sender, RequestNavigateEventArgs e)
+    {
+        Process.Start(new ProcessStartInfo(e.Uri.AbsoluteUri)
+        {
+            UseShellExecute = true
+        });
+        e.Handled = true;
     }
 }

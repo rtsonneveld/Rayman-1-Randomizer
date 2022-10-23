@@ -13,6 +13,7 @@ public partial class MainWindow : Window
     public MainWindow()
     {
         InitializeComponent();
+        DataContext = new RandomizerViewModel();
         Title += $" {App.Version}";
     }
     private void Hyperlink_RequestNavigate(object sender, RequestNavigateEventArgs e)

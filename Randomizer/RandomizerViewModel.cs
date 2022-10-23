@@ -1,9 +1,11 @@
 ﻿using System;
 using System.IO;
 using System.Linq;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
+using BinarySerializer;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 
@@ -59,6 +61,14 @@ public partial class RandomizerViewModel : ObservableObject
         }
     }
 
+    private int GetStringHash(string str)
+    {
+        ChecksumCRC32Calculator crc = new();
+        byte[] bytes = Encoding.UTF8.GetBytes(str);
+        crc.AddBytes(bytes, 0, bytes.Length);
+        return (int)crc.ChecksumValue;
+    }
+
     #endregion
 
     #region Public Methods
@@ -77,7 +87,7 @@ public partial class RandomizerViewModel : ObservableObject
         if (RequiredCages is < 0 or > 102)
             RequiredCages = 102;
 
-        int seed = String.IsNullOrWhiteSpace(Seed) ? new Random().Next() : Seed.GetHashCode();
+        int seed = String.IsNullOrWhiteSpace(Seed) ? new Random().Next() : GetStringHash(Seed);
         RandomizerFlags flags = FlagViewModels.
             Where(flagViewModel => flagViewModel.IsEnabled).
             Aggregate(RandomizerFlags.None, (current, flagViewModel) => current | flagViewModel.Flag);

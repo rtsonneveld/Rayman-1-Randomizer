@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Threading;
@@ -353,7 +354,7 @@ public class Randomizer
         }
     }
 
-    protected void CreateISO(Context context, string xmlFilePath)
+    protected void CreateISO(Context context, string xmlFilePath, string outputDirectory)
     {
         // Close context so the exe can be accessed
         context.Close();
@@ -362,8 +363,11 @@ public class Randomizer
         ProcessHelpers.RunProcess(Settings.MkPsxIsoPath, new[]
         {
             "-y", // Set to always overwrite
-            xmlFilePath // The xml path
+            xmlFilePath, // The xml path,
         }, workingDir: context.BasePath, logInfo: true);
+
+        File.Move(Path.Combine(context.BasePath, "Rayman.bin"), Path.Combine(outputDirectory, "Rayman.bin"));
+        File.Move(Path.Combine(context.BasePath, "Rayman.cue"), Path.Combine(outputDirectory, "Rayman.cue"));
     }
 
     #endregion
@@ -410,7 +414,8 @@ public class Randomizer
 
         // Enumerate every world and every level
         for (int worldIndex = 0; worldIndex < 6; worldIndex++) {
-         
+
+            break; // DEBUG
             settings.World = (World)(worldIndex + 1);
 
             // Get the world file entry
@@ -465,9 +470,25 @@ public class Randomizer
         // Save the exe
         FileFactory.Write<PS1_Executable>(context, ExeFileName);
 
-        CreateISO(context, xmlFileName);
+        string outputDirectory = Path.Combine(Settings.GameDirectory, $"RandomizerOutput_{DateTime.Now:yyyyMMddTHHmmss}_{Settings.Seed}");
+
+        Directory.CreateDirectory(outputDirectory);
+
+        CreateISO(context, xmlFileName, Path.Combine(Settings.GameDirectory, outputDirectory));
+
+        OpenDirectoryInExplorer(outputDirectory);
 
         progressCallback(1);
+    }
+
+    private static void OpenDirectoryInExplorer(string outputDirectory)
+    {
+        System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo()
+        {
+            FileName = outputDirectory,
+            UseShellExecute = true,
+            Verb = "open"
+        });
     }
 
     #endregion

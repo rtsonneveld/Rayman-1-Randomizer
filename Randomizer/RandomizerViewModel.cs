@@ -23,6 +23,11 @@ public partial class RandomizerViewModel : ObservableObject
         {
             new RandomizerFlagViewModel("Cages Only", RandomizerFlags.CagesOnly),
         };
+
+        var config = ConfigFile.GetConfigFile();
+        Seed = config.Seed;
+        GamePath = config.GamePath;
+        MkPsxIsoPath = config.MkPsxIsoPath;
     }
 
     #endregion
@@ -36,6 +41,10 @@ public partial class RandomizerViewModel : ObservableObject
     [ObservableProperty] private string _gamePath = String.Empty;
     [ObservableProperty] private string _mkPsxIsoPath = String.Empty;
     [ObservableProperty] private double _currentProgress = 0;
+
+    partial void OnSeedChanged(string value) => ConfigFile.Update(x => x.Seed = value);
+    partial void OnGamePathChanged(string value) => ConfigFile.Update(x => x.GamePath = value);
+    partial void OnMkPsxIsoPathChanged(string value) => ConfigFile.Update(x => x.MkPsxIsoPath = value);
 
     #endregion
 
@@ -65,13 +74,19 @@ public partial class RandomizerViewModel : ObservableObject
             CopyFile(file, destFile);
         }
     }
-   private int GetStringHash(string str)
+    
+    private int GetSeedFromString(string str)
     {
+        if (int.TryParse(str, out int seed)) {
+            return seed;
+        }
+
         ChecksumCRC32Calculator crc = new();
         byte[] bytes = Encoding.UTF8.GetBytes(str);
         crc.AddBytes(bytes, 0, bytes.Length);
         return (int)crc.ChecksumValue;
     }
+
     private void CopyFile(string file, string destFile)
     {
        if (File.Exists(destFile))
@@ -137,7 +152,7 @@ public partial class RandomizerViewModel : ObservableObject
         if (RequiredCages is < 0 or > 102)
             RequiredCages = 102;
 
-        int seed = String.IsNullOrWhiteSpace(Seed) ? new Random().Next() : GetStringHash(Seed);
+        int seed = String.IsNullOrWhiteSpace(Seed) ? new Random().Next() : GetSeedFromString(Seed);
         RandomizerFlags flags = FlagViewModels.
             Where(flagViewModel => flagViewModel.IsEnabled).
             Aggregate(RandomizerFlags.None, (current, flagViewModel) => current | flagViewModel.Flag);
@@ -156,7 +171,7 @@ public partial class RandomizerViewModel : ObservableObject
                 randomizer.Start(x => CurrentProgress = x, cancellationToken);
             }, cancellationToken);
 
-            MessageBox.Show("Successfully randomized! Copy Rayman.bin and Rayman.cue from the RaymanFiles folder and have fun :)");
+            MessageBox.Show("Successfully randomized! Run Rayman.cue from the opened folder in your favorite emulator and have fun :)");
         }
         catch (OperationCanceledException)
         {
